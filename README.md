@@ -1,3 +1,10 @@
+# Claude Code Notification Hook
+
+[English](#english) | [中文](#中文)
+
+---
+
+<a name="中文"></a>
 # Claude Code 通知 Hook
 
 當 Claude Code 完成任務或等待輸入時，透過 macOS 語音和系統通知提醒你。
@@ -352,6 +359,373 @@ echo '{"hook_event_name": "Notification", "notification_type": "permission_promp
 
 1. 確認 `$TERM_PROGRAM` 環境變數已設定：`echo $TERM_PROGRAM`
 2. 腳本會自動偵測大部分終端，如果你的終端不支援，可以手動修改腳本
+
+## License
+
+MIT License
+
+---
+
+<a name="english"></a>
+# Claude Code Notification Hook (English)
+
+Get notified via macOS TTS voice and system notifications when Claude Code completes a task or waits for your input.
+
+## Features
+
+- **Voice Notification (TTS)** - Uses macOS text-to-speech to announce task status
+- **System Notification** - Push notifications to macOS Notification Center with custom sounds
+- **Click to Focus** - Click notification to jump to the corresponding terminal app
+- **Auto Terminal Detection** - Supports VS Code, Terminal, iTerm2, Tabby, Cursor, and more
+- **Project Name Display** - Automatically extracts project name from working directory for easy identification when running multiple sessions
+
+## Trigger Events
+
+| Event | Description | Voice Example |
+|-------|-------------|---------------|
+| `Stop` | When Claude completes a task | Boss, my-project task is done, please check |
+| `Notification (idle_prompt)` | When Claude waits for input > 60 seconds | Boss, my-project task is waiting for your instructions |
+| `Notification (permission_prompt)` | When Claude needs permission | Boss, my-project task needs your approval |
+
+## Requirements
+
+- macOS (tested on macOS Tahoe)
+- Python 3 (built-in on macOS)
+- [terminal-notifier](https://github.com/julienXX/terminal-notifier) (for system notifications and click-to-focus)
+
+## Installation
+
+### 1. Install terminal-notifier
+
+```bash
+brew install terminal-notifier
+```
+
+### 2. Download the Script
+
+```bash
+# Clone the repository
+git clone https://github.com/wickedapp/claude-notification-hook.git
+
+# Or download the script directly
+curl -o ~/claude-tts-notify.sh https://raw.githubusercontent.com/wickedapp/claude-notification-hook/main/claude-tts-notify.sh
+chmod +x ~/claude-tts-notify.sh
+```
+
+### 3. Configure Claude Code Hooks
+
+Edit `~/.claude/settings.json` and add the following configuration:
+
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/claude-tts-notify.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/claude-tts-notify.sh",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/path/to/claude-tts-notify.sh",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+> **Note**: Replace `/path/to/claude-tts-notify.sh` with the actual path to the script.
+
+You can also copy the contents of `hooks-settings.json` to your settings file.
+
+### 4. Enable Notification Permissions
+
+On first run, you need to enable notification permissions for terminal-notifier in macOS:
+
+1. Open **System Settings**
+2. Click **Notifications**
+3. Find **terminal-notifier**
+4. Enable **"Allow Notifications"**
+5. Recommended: Set style to **"Alerts"**
+
+### 5. Restart Claude Code
+
+After configuration, restart Claude Code to activate the hooks.
+
+## Configuration
+
+Edit the configuration section at the top of `claude-tts-notify.sh`:
+
+```bash
+# Nickname/Title
+NICKNAME="Boss"
+
+# Notification toggles
+ENABLE_TTS=true           # Voice notification
+ENABLE_NOTIFICATION=true  # System notification (Notification Center)
+
+# Voice selection
+VOICE="Samantha"
+
+# Speech rate (default 180, range 1-500)
+RATE=180
+```
+
+---
+
+## Voice Selection Guide
+
+### Step 1: List Available Voices
+
+Run the following command in terminal to list all available voices:
+
+```bash
+# List all voices
+say -v '?'
+
+# List English voices only
+say -v '?' | grep -i "en_"
+
+# List Chinese voices only
+say -v '?' | grep -i "zh\|chinese"
+```
+
+### Step 2: Test Voices
+
+Test each voice to find the one you prefer:
+
+```bash
+# English voices
+say -v "Samantha" "Boss, the task is complete, please check"
+say -v "Alex" "Boss, the task is complete, please check"
+say -v "Victoria" "Boss, the task is complete, please check"
+
+# Chinese voices (Mandarin)
+say -v "Tingting" "老闆，任務完成啦，請看看"
+say -v "Yue (Premium)" "老闆，任務完成啦，請看看"
+
+# Chinese voices (Cantonese)
+say -v "Sinji" "老闆，任務完成啦，請看看"
+```
+
+### Step 3: Set Your Voice
+
+After selecting a voice, edit `claude-tts-notify.sh` and modify the `VOICE` variable:
+
+```bash
+# Set to your preferred voice
+VOICE="Samantha"    # Example: Samantha (English female)
+VOICE="Alex"        # Example: Alex (English male)
+VOICE="Yue (Premium)"  # Example: Yue (Chinese female premium)
+```
+
+### Step 4: Adjust Speech Rate (Optional)
+
+If the voice is too fast or too slow, adjust the `RATE` parameter:
+
+```bash
+RATE=180    # Default speed
+RATE=150    # Slower
+RATE=200    # Faster
+```
+
+Test different speeds:
+
+```bash
+say -v "Samantha" -r 150 "This is a slower speech rate"
+say -v "Samantha" -r 200 "This is a faster speech rate"
+```
+
+### Common Voice Options
+
+#### English Voices
+
+| Voice Name | Gender | Description |
+|------------|--------|-------------|
+| `Samantha` | Female | US English - Recommended |
+| `Alex` | Male | US English |
+| `Victoria` | Female | US English |
+| `Daniel` | Male | UK English |
+| `Karen` | Female | Australian English |
+
+#### Chinese Voices
+
+| Voice Name | Language | Gender | Description |
+|------------|----------|--------|-------------|
+| `Tingting` | zh_CN | Female | Mandarin (Mainland) Basic |
+| `Yue (Premium)` | zh_CN | Female | Mandarin (Mainland) Premium - Recommended |
+| `Han (Premium)` | zh_CN | Male | Mandarin (Mainland) Premium |
+| `Meijia` | zh_TW | Female | Mandarin (Taiwan) Basic |
+| `Meijia (Premium)` | zh_TW | Female | Mandarin (Taiwan) Premium |
+| `Sinji` | zh_HK | Female | Cantonese (Hong Kong) |
+
+> **Tip**: Premium voices sound more natural and fluid. Use them when available.
+
+---
+
+## Customizing Notification Messages
+
+To modify the notification text, edit the `case` block in `claude-tts-notify.sh`:
+
+```bash
+# Select message based on event type
+case "$HOOK_EVENT" in
+    "Stop"|"SubagentStop")
+        # Message when task completes
+        TTS_MESSAGE="${NICKNAME}, ${TASK_NAME} task is complete, please check"
+        NOTIF_TITLE="Task Complete"
+        NOTIF_MESSAGE="${TASK_NAME} task is complete"
+        ;;
+    "Notification")
+        case "$NOTIFICATION_TYPE" in
+            "idle_prompt")
+                # Message when waiting for input
+                TTS_MESSAGE="${NICKNAME}, ${TASK_NAME} task is waiting for your instructions"
+                NOTIF_TITLE="Waiting for Input"
+                NOTIF_MESSAGE="${TASK_NAME} task is waiting"
+                ;;
+            "permission_prompt")
+                # Message when permission needed
+                TTS_MESSAGE="${NICKNAME}, ${TASK_NAME} task needs your approval"
+                NOTIF_TITLE="Permission Required"
+                NOTIF_MESSAGE="${TASK_NAME} task needs approval"
+                ;;
+        esac
+        ;;
+esac
+```
+
+### Available Variables
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `${NICKNAME}` | Your configured nickname | Boss |
+| `${TASK_NAME}` | Project name (from working directory) | my-project |
+
+### Message Examples
+
+```bash
+# Formal style
+TTS_MESSAGE="${NICKNAME}, ${TASK_NAME} project has been completed, please review"
+
+# Casual style
+TTS_MESSAGE="Hey ${NICKNAME}, ${TASK_NAME} is done! Come take a look"
+
+# Minimal style
+TTS_MESSAGE="${TASK_NAME} complete"
+```
+
+## How It Works
+
+```
+┌─────────────────┐
+│  Claude Code    │
+│  Task Complete  │
+└────────┬────────┘
+         │ Trigger Hook
+         ▼
+┌─────────────────┐
+│  Hook sends JSON│
+│  (via stdin)    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│  claude-tts-notify.sh               │
+│                                     │
+│  1. Parse JSON (hook_event_name,    │
+│     notification_type, cwd)         │
+│  2. Extract project name from cwd   │
+│  3. Detect terminal app             │
+│  4. Send system notification        │
+│  5. Play TTS voice                  │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│  Notification   │     │  Voice (TTS)    │
+│  Center         │     │                 │
+└─────────────────┘     └─────────────────┘
+```
+
+### Hook JSON Data
+
+```json
+{
+  "session_id": "abc123",
+  "transcript_path": "~/.claude/projects/.../transcript.jsonl",
+  "cwd": "/path/to/your/project",
+  "permission_mode": "default",
+  "hook_event_name": "Stop",
+  "notification_type": "idle_prompt"
+}
+```
+
+### Auto Terminal Detection
+
+The script reads the `$TERM_PROGRAM` environment variable to auto-detect the current terminal app:
+
+| Terminal | TERM_PROGRAM | Bundle ID |
+|----------|--------------|-----------|
+| VS Code | `vscode` | `com.microsoft.VSCode` |
+| Terminal.app | `Apple_Terminal` | `com.apple.Terminal` |
+| iTerm2 | `iTerm.app` | `com.googlecode.iterm2` |
+| Tabby | `Tabby` | `org.tabby` |
+| Others | Auto-detect | Dynamic |
+
+## Testing
+
+```bash
+# Test task complete notification
+echo '{"hook_event_name": "Stop", "cwd": "/test/my-project"}' | ./claude-tts-notify.sh
+
+# Test waiting for input notification
+echo '{"hook_event_name": "Notification", "notification_type": "idle_prompt", "cwd": "/test/my-project"}' | ./claude-tts-notify.sh
+
+# Test permission required notification
+echo '{"hook_event_name": "Notification", "notification_type": "permission_prompt", "cwd": "/test/my-project"}' | ./claude-tts-notify.sh
+```
+
+## Troubleshooting
+
+### Can't See System Notifications
+
+1. Verify terminal-notifier is installed: `which terminal-notifier`
+2. Check notification permissions: System Settings → Notifications → terminal-notifier
+3. Make sure Do Not Disturb is not enabled
+
+### Can't Hear Voice
+
+1. Check that system volume is not muted
+2. Test if voice is available: `say -v "Samantha" "Test"`
+3. If voice is unavailable, try another voice like `Alex`
+
+### Clicking Notification Doesn't Focus App
+
+1. Verify `$TERM_PROGRAM` environment variable is set: `echo $TERM_PROGRAM`
+2. The script auto-detects most terminals. If yours isn't supported, you can manually modify the script
 
 ## License
 
