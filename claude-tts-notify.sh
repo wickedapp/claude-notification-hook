@@ -97,13 +97,18 @@ if [ -n "$TERM_PROGRAM" ]; then
 fi
 
 # macOS 系統通知 (使用 terminal-notifier，點擊可跳轉)
+# 使用 -group 參數確保通知不會重複，點擊後自動清除
 if [ "$ENABLE_NOTIFICATION" = true ]; then
+    # 生成唯一的 group ID（基於任務名和事件類型）
+    GROUP_ID="claude-${TASK_NAME}-${HOOK_EVENT}"
+
     if [ -n "$ACTIVATE_APP" ]; then
         /opt/homebrew/bin/terminal-notifier \
             -title "Claude Code" \
             -subtitle "$NOTIF_TITLE" \
             -message "$NOTIF_MESSAGE" \
             -sound "Glass" \
+            -group "$GROUP_ID" \
             -activate "$ACTIVATE_APP" \
             -ignoreDnD
     else
@@ -112,6 +117,7 @@ if [ "$ENABLE_NOTIFICATION" = true ]; then
             -subtitle "$NOTIF_TITLE" \
             -message "$NOTIF_MESSAGE" \
             -sound "Glass" \
+            -group "$GROUP_ID" \
             -ignoreDnD
     fi
 fi
