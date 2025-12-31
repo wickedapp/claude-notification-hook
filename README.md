@@ -36,10 +36,10 @@ brew install terminal-notifier
 
 ```bash
 # 克隆倉庫
-git clone https://github.com/YOUR_USERNAME/claude-notification.git
+git clone https://github.com/wickedapp/claude-notification-hook.git
 
 # 或直接下載腳本
-curl -o ~/claude-tts-notify.sh https://raw.githubusercontent.com/YOUR_USERNAME/claude-notification/main/claude-tts-notify.sh
+curl -o ~/claude-tts-notify.sh https://raw.githubusercontent.com/wickedapp/claude-notification-hook/main/claude-tts-notify.sh
 chmod +x ~/claude-tts-notify.sh
 ```
 
@@ -124,21 +124,143 @@ VOICE="Yue (Premium)"
 RATE=180
 ```
 
-### 可用的中文語音
+---
 
-| 語音名稱 | 說明 |
-|----------|------|
-| `Tingting` | 普通話 (大陸) |
-| `Meijia` | 普通話 (台灣) |
-| `Sinji` | 粵語 (香港) |
-| `Yue (Premium)` | 女聲普通話 (高級) |
-| `Han (Premium)` | 男聲普通話 (高級) |
-| `Meijia (Premium)` | 女聲台灣普通話 (高級) |
+## 語音選擇指南
 
-查看所有可用語音：
+### 步驟 1：查看可用的中文語音
+
+在終端執行以下命令，列出所有中文語音：
 
 ```bash
 say -v '?' | grep -i "zh\|chinese"
+```
+
+輸出示例：
+```
+Han (Premium)       zh_CN    # 你好！我叫瀚。
+Meijia              zh_TW    # 你好，我叫美佳。
+Meijia (Premium)    zh_TW    # 你好，我叫美佳。
+Sinji               zh_HK    # 你好！我叫善怡。
+Tingting            zh_CN    # 你好！我叫婷婷。
+Yue (Premium)       zh_CN    # 你好！我叫月。
+```
+
+### 步驟 2：試聽語音
+
+逐一測試每個語音，選擇你喜歡的：
+
+```bash
+# 普通話 (大陸) - 女聲
+say -v "Tingting" "老闆，任務完成啦，請看看"
+
+# 普通話 (大陸) - 女聲高級版
+say -v "Yue (Premium)" "老闆，任務完成啦，請看看"
+
+# 普通話 (大陸) - 男聲高級版
+say -v "Han (Premium)" "老闆，任務完成啦，請看看"
+
+# 普通話 (台灣) - 女聲
+say -v "Meijia" "老闆，任務完成啦，請看看"
+
+# 普通話 (台灣) - 女聲高級版
+say -v "Meijia (Premium)" "老闆，任務完成啦，請看看"
+
+# 粵語 (香港) - 女聲
+say -v "Sinji" "老闆，任務完成啦，請看看"
+```
+
+### 步驟 3：設定語音
+
+選定語音後，編輯 `claude-tts-notify.sh`，修改 `VOICE` 變數：
+
+```bash
+# 將 VOICE 改為你選擇的語音名稱
+VOICE="Yue (Premium)"    # 例如：使用月（女聲高級版）
+```
+
+### 步驟 4：調整語速（可選）
+
+如果語音太快或太慢，可以調整 `RATE` 參數：
+
+```bash
+RATE=180    # 默認語速
+RATE=150    # 較慢
+RATE=200    # 較快
+```
+
+測試不同語速：
+
+```bash
+say -v "Yue (Premium)" -r 150 "這是較慢的語速"
+say -v "Yue (Premium)" -r 200 "這是較快的語速"
+```
+
+### 可用的中文語音列表
+
+| 語音名稱 | 語言 | 性別 | 說明 |
+|----------|------|------|------|
+| `Tingting` | zh_CN | 女 | 普通話 (大陸) 基本版 |
+| `Yue (Premium)` | zh_CN | 女 | 普通話 (大陸) 高級版 - 推薦 |
+| `Han (Premium)` | zh_CN | 男 | 普通話 (大陸) 高級版 |
+| `Meijia` | zh_TW | 女 | 普通話 (台灣) 基本版 |
+| `Meijia (Premium)` | zh_TW | 女 | 普通話 (台灣) 高級版 |
+| `Sinji` | zh_HK | 女 | 粵語 (香港) |
+
+> **提示**：Premium 版本的語音更自然流暢，建議優先選用。
+
+---
+
+## 自訂通知訊息
+
+如果想修改通知的文字內容，編輯 `claude-tts-notify.sh` 中的 `case` 區塊：
+
+```bash
+# 根据事件类型选择消息
+case "$HOOK_EVENT" in
+    "Stop"|"SubagentStop")
+        # 任務完成時的訊息
+        TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務完成啦，請看看"
+        NOTIF_TITLE="任務完成"
+        NOTIF_MESSAGE="${TASK_NAME} 任務完成啦，請看看"
+        ;;
+    "Notification")
+        case "$NOTIFICATION_TYPE" in
+            "idle_prompt")
+                # 等待輸入時的訊息
+                TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務在等你指示呢"
+                NOTIF_TITLE="等待輸入"
+                NOTIF_MESSAGE="${TASK_NAME} 任務在等你指示"
+                ;;
+            "permission_prompt")
+                # 需要授權時的訊息
+                TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務需要你批准一下喔"
+                NOTIF_TITLE="需要授權"
+                NOTIF_MESSAGE="${TASK_NAME} 任務需要你批准"
+                ;;
+        esac
+        ;;
+esac
+```
+
+### 可用的變數
+
+| 變數 | 說明 | 示例 |
+|------|------|------|
+| `${NICKNAME}` | 你設定的稱呼 | 老闆 |
+| `${TASK_NAME}` | 專案名稱（從工作目錄提取）| my-project |
+
+### 訊息自訂示例
+
+```bash
+# 更正式的風格
+TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 專案已完成，請審閱"
+
+# 更活潑的風格
+TTS_MESSAGE="嘿 ${NICKNAME}，${TASK_NAME} 搞定啦！快來看看"
+
+# 簡潔風格
+TTS_MESSAGE="${TASK_NAME} 完成"
 ```
 
 ## 工作原理
