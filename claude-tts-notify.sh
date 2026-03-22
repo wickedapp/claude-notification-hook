@@ -6,18 +6,9 @@
 # 自定义配置区域 - 在此修改你的消息
 # ============================================
 
-# 稱呼
-NICKNAME="老闆"
-
 # 通知開關
-ENABLE_TTS=true           # 語音通知
+ENABLE_TTS=true           # 語音通知（播放預錄 MP3）
 ENABLE_NOTIFICATION=true  # 系統通知 (通知中心)
-
-# 中文语音选择
-VOICE="Yue (Premium)"
-
-# 语速 (默认 180, 范围 1-500)
-RATE=180
 
 # idle_prompt 靜默時間（秒）
 # 如果在此時間內已發送過 Stop 通知，則不發送 idle_prompt 通知
@@ -46,7 +37,7 @@ print(f\"CWD='{data.get('cwd', '')}'\" )
 # 從工作目錄提取任務名（最後一個資料夾名稱）
 TASK_NAME=$(basename "$CWD")
 if [ -z "$TASK_NAME" ]; then
-    TASK_NAME="任務"
+    TASK_NAME="Task"
 fi
 
 # 狀態檔案路徑（每個任務一個）
@@ -79,36 +70,41 @@ if [ "$SKIP_NOTIFICATION" = true ]; then
     exit 0
 fi
 
+# 語音檔案路徑
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SOUND_COMPLETED="${SCRIPT_DIR}/task_completed.mp3"
+SOUND_PENDING="${SCRIPT_DIR}/task_pending.mp3"
+
 # 根据事件类型选择消息
 case "$HOOK_EVENT" in
     "Stop"|"SubagentStop")
-        TTS_MESSAGE="${NICKNAME}，${TASK_NAME}完成啦，請看看"
-        NOTIF_TITLE="任務完成"
-        NOTIF_MESSAGE="${TASK_NAME}完成啦，請看看"
+        SOUND_FILE="$SOUND_COMPLETED"
+        NOTIF_TITLE="Task Completed"
+        NOTIF_MESSAGE="${TASK_NAME} is done, please review"
         ;;
     "Notification")
         case "$NOTIFICATION_TYPE" in
             "idle_prompt")
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}在等你指示呢"
-                NOTIF_TITLE="等待輸入"
-                NOTIF_MESSAGE="${TASK_NAME}在等你指示"
+                SOUND_FILE="$SOUND_PENDING"
+                NOTIF_TITLE="Waiting for Input"
+                NOTIF_MESSAGE="${TASK_NAME} is waiting for your input"
                 ;;
             "permission_prompt")
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}需要你批准一下喔"
-                NOTIF_TITLE="需要授權"
-                NOTIF_MESSAGE="${TASK_NAME}需要你批准"
+                SOUND_FILE="$SOUND_PENDING"
+                NOTIF_TITLE="Permission Required"
+                NOTIF_MESSAGE="${TASK_NAME} needs your approval"
                 ;;
             *)
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}在等你指示呢"
-                NOTIF_TITLE="等待輸入"
-                NOTIF_MESSAGE="${TASK_NAME}在等你指示"
+                SOUND_FILE="$SOUND_PENDING"
+                NOTIF_TITLE="Waiting for Input"
+                NOTIF_MESSAGE="${TASK_NAME} is waiting for your input"
                 ;;
         esac
         ;;
     *)
-        TTS_MESSAGE="${NICKNAME}，${TASK_NAME}完成啦，請看看"
-        NOTIF_TITLE="任務完成"
-        NOTIF_MESSAGE="${TASK_NAME}完成啦，請看看"
+        SOUND_FILE="$SOUND_COMPLETED"
+        NOTIF_TITLE="Task Completed"
+        NOTIF_MESSAGE="${TASK_NAME} is done, please review"
         ;;
 esac
 
@@ -140,29 +136,25 @@ if [ "$ENABLE_NOTIFICATION" = true ]; then
     # 生成唯一的 group ID（基於任務名和事件類型）
     GROUP_ID="claude-${TASK_NAME}-${HOOK_EVENT}"
 
+    NOTIFIER_ARGS=(
+        -title "Claude Code"
+        -subtitle "$NOTIF_TITLE"
+        -message "$NOTIF_MESSAGE"
+        -sound "Glass"
+        -group "$GROUP_ID"
+        -ignoreDnD
+    )
+
     if [ -n "$ACTIVATE_APP" ]; then
-        /opt/homebrew/bin/terminal-notifier \
-            -title "Claude Code" \
-            -subtitle "$NOTIF_TITLE" \
-            -message "$NOTIF_MESSAGE" \
-            -sound "Glass" \
-            -group "$GROUP_ID" \
-            -activate "$ACTIVATE_APP" \
-            -ignoreDnD
-    else
-        /opt/homebrew/bin/terminal-notifier \
-            -title "Claude Code" \
-            -subtitle "$NOTIF_TITLE" \
-            -message "$NOTIF_MESSAGE" \
-            -sound "Glass" \
-            -group "$GROUP_ID" \
-            -ignoreDnD
+        NOTIFIER_ARGS+=(-activate "$ACTIVATE_APP")
     fi
+
+    /opt/homebrew/bin/terminal-notifier "${NOTIFIER_ARGS[@]}"
 fi
 
-# 語音通知
-if [ "$ENABLE_TTS" = true ]; then
-    /usr/bin/say -v "$VOICE" -r "$RATE" "$TTS_MESSAGE"
+# 語音通知（播放預錄 MP3）
+if [ "$ENABLE_TTS" = true ] && [ -f "$SOUND_FILE" ]; then
+    /usr/bin/afplay "$SOUND_FILE"
 fi
 
 exit 0
