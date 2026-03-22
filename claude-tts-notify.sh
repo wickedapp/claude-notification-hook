@@ -82,33 +82,33 @@ fi
 # 根据事件类型选择消息
 case "$HOOK_EVENT" in
     "Stop"|"SubagentStop")
-        TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務完成啦，請看看"
+        TTS_MESSAGE="${NICKNAME}，${TASK_NAME}完成啦，請看看"
         NOTIF_TITLE="任務完成"
-        NOTIF_MESSAGE="${TASK_NAME} 任務完成啦，請看看"
+        NOTIF_MESSAGE="${TASK_NAME}完成啦，請看看"
         ;;
     "Notification")
         case "$NOTIFICATION_TYPE" in
             "idle_prompt")
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務在等你指示呢"
+                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}在等你指示呢"
                 NOTIF_TITLE="等待輸入"
-                NOTIF_MESSAGE="${TASK_NAME} 任務在等你指示"
+                NOTIF_MESSAGE="${TASK_NAME}在等你指示"
                 ;;
             "permission_prompt")
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務需要你批准一下喔"
+                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}需要你批准一下喔"
                 NOTIF_TITLE="需要授權"
-                NOTIF_MESSAGE="${TASK_NAME} 任務需要你批准"
+                NOTIF_MESSAGE="${TASK_NAME}需要你批准"
                 ;;
             *)
-                TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務在等你指示呢"
+                TTS_MESSAGE="${NICKNAME}，${TASK_NAME}在等你指示呢"
                 NOTIF_TITLE="等待輸入"
-                NOTIF_MESSAGE="${TASK_NAME} 任務在等你指示"
+                NOTIF_MESSAGE="${TASK_NAME}在等你指示"
                 ;;
         esac
         ;;
     *)
-        TTS_MESSAGE="${NICKNAME}，${TASK_NAME} 任務完成啦，請看看"
+        TTS_MESSAGE="${NICKNAME}，${TASK_NAME}完成啦，請看看"
         NOTIF_TITLE="任務完成"
-        NOTIF_MESSAGE="${TASK_NAME} 任務完成啦，請看看"
+        NOTIF_MESSAGE="${TASK_NAME}完成啦，請看看"
         ;;
 esac
 
