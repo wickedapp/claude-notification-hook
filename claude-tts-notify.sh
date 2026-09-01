@@ -7,7 +7,7 @@
 # ============================================
 
 # 通知開關
-ENABLE_TTS=true           # 語音通知（播放預錄 MP3）
+ENABLE_TTS=false          # 語音通知（播放預錄 MP3）
 ENABLE_NOTIFICATION=true  # 系統通知 (通知中心)
 
 # idle_prompt 靜默時間（秒）
