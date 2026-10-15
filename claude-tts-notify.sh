@@ -140,7 +140,6 @@ if [ "$ENABLE_NOTIFICATION" = true ]; then
         -title "Claude Code"
         -subtitle "$NOTIF_TITLE"
         -message "$NOTIF_MESSAGE"
-        -sound "Glass"
         -group "$GROUP_ID"
         -ignoreDnD
     )
